@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 
@@ -44,25 +45,31 @@ func Load() (*Config, error) {
 
 func ConfigLogger() {
 	logfile := os.Getenv("LOGFILE")
+	var output io.Writer
+
 	if logfile == "" {
-		logfile = "app.log" // Default log file name
-	}
-	fmt.Println("config.go->ConfigLogger(): Logfile set to:", logfile)
-
-	file, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		fmt.Println("Error initializing logger:", err)
+		// NO LOGFILE env set, default to STDOUT (not running locally)
+		output = os.Stdout
+		fmt.Println("config.go->ConfigLogger(): No LOGFILE env set. Logging to STDOUT.")
 	} else {
-		// Create a JSON handler that writes to the file
-		handler := slog.NewJSONHandler(file, &slog.HandlerOptions{
-			Level:     slog.LevelDebug,
-			AddSource: true, // Include source file and line number
-		})
-
-		logger := slog.New(handler)
-
-		// Set as the default logger
-		slog.SetDefault(logger)
-		slog.Info("Logger initialized successfully")
+		// Logfile is set, attempt to open it (Local behavior)
+		file, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Printf("Error opening logfile %s: %v. Falling back to STDOUT.\n", logfile, err)
+			output = os.Stdout
+		} else {
+			output = file
+			fmt.Println("config.go->ConfigLogger(): Logging to file:", logfile)
+		}
 	}
+
+	// Create the JSON handler using the determined output
+	handler := slog.NewJSONHandler(output, &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: true,
+	})
+
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+	slog.Info("Logger initialized successfully")
 }

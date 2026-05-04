@@ -2,15 +2,17 @@
  * Helper to build full API URLs using the environment base
  */
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
+import { INTERNAL_API_URL } from '$env/static/private';
 
 export function apiRoute(path: string): string {
-    // Debugging: This will log to your terminal during server-side loads
-    if (!PUBLIC_API_BASE_URL) {
-        console.error("❌ ERROR: PUBLIC_API_BASE_URL is not defined in .env");
-        // Fallback to help you keep developing while you fix the env issue
-        return `http://127.0.0.1:1323/${path.startsWith('/') ? path.slice(1) : path}`;
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+
+    // If we are on the server (SSR), use the high-speed internal URL
+    if (typeof window === 'undefined' && INTERNAL_API_URL) {
+        return `${INTERNAL_API_URL.replace(/\/$/, '')}/${cleanPath}`;
     }
 
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${PUBLIC_API_BASE_URL}/${cleanPath}`;
+    // Otherwise (client-side), use the public URL
+    const cleanBase = PUBLIC_API_BASE_URL?.replace(/\/$/, '') || 'http://127.0.0.1:1323';
+    return `${cleanBase}/${cleanPath}`;
 }

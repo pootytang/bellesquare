@@ -1,0 +1,41 @@
+# --- Operating System ---
+.DS_Store
+Thumbs.db
+
+# --- Go Backend ---
+/backend/bin/
+/backend/dist/
+backend/*.exe
+backend/*.exe~
+backend/*.dll
+backend/*.so
+backend/*.dylib
+# Compiled Go binary
+backend/main
+# Dependency folder (if using go mod vendor)
+backend/vendor/
+
+# --- BACKUPS ---
+frontend-bak/
+backend-bak/
+Queries/
+
+# --- Frontend (SvelteKit + Bun) ---
+/frontend/node_modules/
+/frontend/.svelte-kit/
+/frontend/build/
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
+
+# --- Bun Specific ---
+bun.lockb
+# If you prefer to keep the lockfile (recommended for Railway), 
+# comment out the line above.
+
+# --- Database / IDE ---
+.env
+.vscode/
+.idea/
+*.db
+*.sqlite
